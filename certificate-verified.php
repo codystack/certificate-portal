@@ -19,7 +19,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="author" content="ThankGod Okoro">
+        <meta name="author" content="webify.com.ng">
         <title>Verify Certificate :: Glajoe Services&trade;</title>
 
         <link rel="stylesheet" href="assets/vendors/iconfonts/mdi/font/css/materialdesignicons.min.css">
