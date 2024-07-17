@@ -71,7 +71,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="mt-4 text-center">
+                            <div class="mt-4 text-center mb-4">
                                 <a href="https://portal.glajoeservices.com.ng/admin/<?php echo $_SESSION['image']; ?>" target="_blank" class="btn btn-primary">View Certificate</a>
                                 <a href="close" class="btn btn-danger">Go Back</a>
                             </div>
