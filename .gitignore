@@ -1,0 +1,8 @@
+# Local secrets — never commit
+config/secrets.php
+
+# OS / editor cruft
+.DS_Store
+
+# Claude Code local files
+.claude/

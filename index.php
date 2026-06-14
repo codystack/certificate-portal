@@ -6,34 +6,32 @@ include "./config/db.php";
     //Verify Certificate
     if (isset($_POST['verify_certificate_btn'])) {
 
-        $certNum = $conn->real_escape_string($_POST['certNum']);
+        $certNum = trim($_POST['certNum']);
 
-            $query = "SELECT * FROM certificate WHERE certNum = '$certNum'";
-            $results = mysqli_query($conn, $query);
-            while($row = mysqli_fetch_array($results)) {
-                $id = $row['id'];
-                $title = $row['title'];
-                $client = $row['client'];
-                $certNum = $row['certNum'];
-                $image = $row['image'];
-                $status = $row['status'];
-            }
+            $stmt = mysqli_prepare($conn, "SELECT * FROM certificate WHERE certNum = ? LIMIT 1");
+            mysqli_stmt_bind_param($stmt, "s", $certNum);
+            mysqli_stmt_execute($stmt);
+            $results = mysqli_stmt_get_result($stmt);
+
             if (mysqli_num_rows($results) == 1) {
-                $_SESSION['id'] = $id;
-                $_SESSION['title'] = $title;
-                $_SESSION['client'] = $client;
-                $_SESSION['certNum'] = $certNum;
-                $_SESSION['image'] = $image;
-                $_SESSION['status'] = $status;
-            header('location: certificate-verified');
-            }else {
+                $row = mysqli_fetch_assoc($results);
+                $_SESSION['id'] = $row['id'];
+                $_SESSION['title'] = $row['title'];
+                $_SESSION['client'] = $row['client'];
+                $_SESSION['certNum'] = $row['certNum'];
+                $_SESSION['image'] = $row['image'];
+                $_SESSION['status'] = $row['status'];
+                header('location: certificate-verified');
+                exit;
+            } else {
                 $_SESSION['message_title'] = "Invalid Certificate No.";
                 $_SESSION['message'] = "Please Verify Certificate No.";
             }
     }
 
 ?>
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -74,15 +72,15 @@ include "./config/db.php";
             ?>
             <script>
                 swal({
-                    title: "<?php echo $_SESSION['message_title']; ?>",
-                    text: "<?php echo $_SESSION['message']; ?>",
+                    title: <?php echo json_encode($_SESSION['message_title']); ?>,
+                    text: <?php echo json_encode($_SESSION['message']); ?>,
                     icon: "error",
                     buttons: false,
                     timer: 3000
                 });
             </script>
             <?php
-            unset($_SESSION['message']);
+            unset($_SESSION['message'], $_SESSION['message_title']);
         }
     ?>
   </body>

@@ -11,17 +11,25 @@ if ($WEBSITE_ENVIRONMENT == "Development") {
     $database = "glajoe";
     error_reporting(E_ALL ^ E_NOTICE); // turn ON showing errors
 } else {
-    $host = "localhost";
-    $user = "jazzeffe_glajoe";
-    $password = "REDACTED-ROTATE-ME";
-    $database = "jazzeffe_glajoe";
+    // Production credentials are loaded from an untracked file outside source control.
+    // See config/secrets.sample.php — copy it to config/secrets.php and fill in values.
+    $secrets = __DIR__ . "/secrets.php";
+    if (!is_readable($secrets)) {
+        die("Configuration error.");
+    }
+    $cfg = require $secrets;
+    $host = $cfg['host'];
+    $user = $cfg['user'];
+    $password = $cfg['password'];
+    $database = $cfg['database'];
     define("APP_ENVIRONMENT", "Production");
     define("APP_BASE_URL", "https://app.glajoeservices.com.ng/");
-    #error_reporting(0); // turn OFF showing errors
-    error_reporting(E_ALL ^ E_NOTICE); // turn ON showing errors
+    error_reporting(0);          // do not expose errors in production
+    ini_set('display_errors', '0');
 }
 // connect to the database server
 $conn = mysqli_connect($host, $user, $password) or die("Could not connect to database");
 // select the right database
 mysqli_select_db($conn, $database);
+mysqli_set_charset($conn, "utf8mb4");
 // END Database connection and Configuration
