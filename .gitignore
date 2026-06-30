@@ -1,8 +1,9 @@
-# Local secrets — never commit
-config/secrets.php
-
+# Environment secrets — never commit
+.env
 # OS / editor cruft
 .DS_Store
 
 # Claude Code local files
 .claude/
+
+# NOTE: vendor/ is committed on purpose — shared hosting deploys without composer.

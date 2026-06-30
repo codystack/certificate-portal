@@ -1,0 +1,76 @@
+-- certificate-portal database schema
+-- Tables are listed in FK-safe creation order.
+-- Any new table created in the application must be appended here.
+-- Safe to run against an existing database — CREATE TABLE IF NOT EXISTS skips tables that already exist.
+--
+-- Usage: mysql -u root glajoe < database
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+
+-- ─── Admin / Auth ─────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS admin (
+  id        int(11)      NOT NULL AUTO_INCREMENT,
+  email     varchar(150) NOT NULL,
+  password  varchar(255) NOT NULL,
+  firstName varchar(100) NOT NULL,
+  lastName  varchar(100) NOT NULL,
+  position  varchar(100) DEFAULT NULL,
+  status    enum('Active','Inactive') NOT NULL DEFAULT 'Active',
+  date      datetime     NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  UNIQUE KEY email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- ─── Certificates ─────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS certificate (
+  id                   int(11)      NOT NULL AUTO_INCREMENT,
+  title                varchar(255) NOT NULL,
+  type                 varchar(100) DEFAULT NULL,
+  client               varchar(255) NOT NULL,
+  equipment_owner      varchar(255) DEFAULT NULL,
+  certNum              varchar(255) NOT NULL,
+  image                varchar(100) DEFAULT NULL,
+  status               enum('Active','Expired') NOT NULL DEFAULT 'Active',
+  dateCreated          datetime     NOT NULL DEFAULT current_timestamp(),
+  examiner             varchar(255) DEFAULT NULL,
+  qualification        varchar(255) DEFAULT NULL,
+  test_location        varchar(255) DEFAULT NULL,
+  reference_standard   varchar(255) DEFAULT NULL,
+  inspection_date      date         DEFAULT NULL,
+  next_inspection_date date         DEFAULT NULL,
+  inspector_name       varchar(255) DEFAULT NULL,
+  defects              text         DEFAULT NULL,
+  details              longtext     DEFAULT NULL,
+  generated            tinyint(1)   NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY certNum (certNum)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- ─── Column migrations for EXISTING installs ──────────────────────────────────
+-- `CREATE TABLE IF NOT EXISTS` above skips tables that already exist, so any
+-- column added to a pre-existing table must be (re)applied here. These are
+-- idempotent on MariaDB 10.2+ via ADD COLUMN IF NOT EXISTS, so the whole
+-- file stays safe to re-run.
+
+-- certificate: structured inspection-report fields for generated certificates
+ALTER TABLE certificate
+  ADD COLUMN IF NOT EXISTS type                 VARCHAR(100) NULL AFTER title,
+  ADD COLUMN IF NOT EXISTS equipment_owner      VARCHAR(255) NULL AFTER client,
+  ADD COLUMN IF NOT EXISTS examiner             VARCHAR(255) NULL,
+  ADD COLUMN IF NOT EXISTS qualification        VARCHAR(255) NULL,
+  ADD COLUMN IF NOT EXISTS test_location        VARCHAR(255) NULL,
+  ADD COLUMN IF NOT EXISTS reference_standard   VARCHAR(255) NULL,
+  ADD COLUMN IF NOT EXISTS inspection_date      DATE NULL,
+  ADD COLUMN IF NOT EXISTS next_inspection_date DATE NULL,
+  ADD COLUMN IF NOT EXISTS inspector_name       VARCHAR(255) NULL,
+  ADD COLUMN IF NOT EXISTS defects              TEXT NULL,
+  ADD COLUMN IF NOT EXISTS details              LONGTEXT NULL,
+  ADD COLUMN IF NOT EXISTS generated            TINYINT(1) NOT NULL DEFAULT 0;
+
+
+SET FOREIGN_KEY_CHECKS = 1;

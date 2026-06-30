@@ -3,30 +3,39 @@ session_start();
 
 include "./config/db.php";
 
-    //Verify Certificate
+    // Certificate number can arrive two ways:
+    //  - POST from the search form
+    //  - GET ?cert=... from a scanned QR code (auto-verify / pre-fill)
+    $prefill = '';
+    $certNum = null;
     if (isset($_POST['verify_certificate_btn'])) {
-
         $certNum = trim($_POST['certNum']);
+    } elseif (isset($_GET['cert'])) {
+        $certNum = trim($_GET['cert']);
+    }
 
-            $stmt = mysqli_prepare($conn, "SELECT * FROM certificate WHERE certNum = ? LIMIT 1");
-            mysqli_stmt_bind_param($stmt, "s", $certNum);
-            mysqli_stmt_execute($stmt);
-            $results = mysqli_stmt_get_result($stmt);
+    if ($certNum !== null && $certNum !== '') {
+        $prefill = $certNum;
 
-            if (mysqli_num_rows($results) == 1) {
-                $row = mysqli_fetch_assoc($results);
-                $_SESSION['id'] = $row['id'];
-                $_SESSION['title'] = $row['title'];
-                $_SESSION['client'] = $row['client'];
-                $_SESSION['certNum'] = $row['certNum'];
-                $_SESSION['image'] = $row['image'];
-                $_SESSION['status'] = $row['status'];
-                header('location: certificate-verified');
-                exit;
-            } else {
-                $_SESSION['message_title'] = "Invalid Certificate No.";
-                $_SESSION['message'] = "Please Verify Certificate No.";
-            }
+        $stmt = mysqli_prepare($conn, "SELECT * FROM certificate WHERE certNum = ? LIMIT 1");
+        mysqli_stmt_bind_param($stmt, "s", $certNum);
+        mysqli_stmt_execute($stmt);
+        $results = mysqli_stmt_get_result($stmt);
+
+        if (mysqli_num_rows($results) == 1) {
+            $row = mysqli_fetch_assoc($results);
+            $_SESSION['id'] = $row['id'];
+            $_SESSION['title'] = $row['title'];
+            $_SESSION['client'] = $row['client'];
+            $_SESSION['certNum'] = $row['certNum'];
+            $_SESSION['image'] = $row['image'];
+            $_SESSION['status'] = $row['status'];
+            header('location: certificate-verified');
+            exit;
+        } else {
+            $_SESSION['message_title'] = "Invalid Certificate No.";
+            $_SESSION['message'] = "Please Verify Certificate No.";
+        }
     }
 
 ?>
@@ -55,7 +64,7 @@ include "./config/db.php";
                         <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
                     </svg>
                 </div>
-                <input id="search" type="text" name="certNum" required placeholder="Enter Certificate No. (ex: GQGL/SSL-XXU/092031/108)" />
+                <input id="search" type="text" name="certNum" required value="<?php echo htmlspecialchars($prefill, ENT_QUOTES, 'UTF-8'); ?>" placeholder="Enter Certificate No. (ex: GQGL/SSL-XXU/092031/108)" />
             </div>
             <div class="input-field second-wrap">
                 <button class="btn-search" type="submit" name="verify_certificate_btn">Verify Certificate</button>

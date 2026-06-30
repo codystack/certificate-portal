@@ -1,0 +1,9 @@
+# Glajoe admin — protect sensitive files from direct HTTP access.
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+RewriteEngine On
+# Allow extensionless URLs (e.g. /admin/dashboard -> dashboard.php)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([^\.]+)$ $1.php [NC,L]
