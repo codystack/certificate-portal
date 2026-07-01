@@ -1,106 +1,147 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/includes/helpers.php";
 
-// Already signed in → straight to the dashboard.
 if (isset($_SESSION["admin_id"])) {
     redirect("dashboard.php");
 }
 ?>
 <!doctype html>
 <html lang="en" data-bs-theme="">
-<head>
+  <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo csrf_meta(); ?>
-    <link rel="shortcut icon" href="../assets/images/glajoe-favicon.png" type="image/x-icon">
+    <link rel="shortcut icon" href="assets/img/glajoe-favicon.png" type="image/x-icon">
     <link rel="stylesheet" href="assets/css/libs.bundle.css">
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
-    <title>Sign In :: Glajoe Admin</title>
-</head>
-<body class="d-flex align-items-center bg-auth border-top border-top-2 border-primary">
+    <title>Sign In :: Glajoe Services&trade;</title>
+    <style>
+      .login-card { max-width: 440px; }
+      .form-floating { margin-bottom: 1.25rem; }
+      .form-floating .form-control { height: 3.5rem; padding: 1rem 0.85rem 0.25rem; }
+      .form-floating label { padding: 0.85rem; color: #6c757d; }
+      .toggle-pw {
+        position: absolute;
+        right: 0.85rem;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #6c757d;
+        z-index: 5;
+      }
+      .forgot-link { font-size: 0.8125rem; }
+    </style>
+  </head>
+  <body class="d-flex align-items-center bg-auth border-top border-top-2 border-primary">
     <div class="container-fluid">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-5 col-lg-6 col-xl-4 px-lg-6 my-5 align-self-center">
-                <div class="px-lg-4 px-0">
-                    <div class="mb-4 text-center">
-                        <a href="../"><img src="../assets/images/glajoe-favicon.png" width="72" alt="Glajoe"></a>
-                    </div>
-                    <h1 class="display-4 text-center mb-3">Glajoe Admin</h1>
-                    <p class="text-body-secondary text-center mb-5">Sign in to manage certificates.</p>
+      <div class="row justify-content-center">
 
-                    <form id="loginForm">
-                        <div class="form-floating form-group mb-3">
-                            <input type="email" name="email" class="form-control" id="floatingInput" placeholder="name@example.com" required>
-                            <label for="floatingInput">Email address</label>
-                        </div>
-                        <div class="form-floating form-group position-relative mb-4">
-                            <input type="password" name="password" class="form-control pe-5" id="floatingPassword" placeholder="Password" required>
-                            <label for="floatingPassword">Password</label>
-                            <span onclick="togglePassword()" class="position-absolute end-0 translate-middle-y me-4" style="cursor:pointer;top:35%!important;">
-                                <i id="toggleIcon" class="fe fe-eye"></i>
-                            </span>
-                        </div>
-                        <button class="btn btn-lg w-100 btn-primary mb-3" id="loginSubmit" type="submit">Sign in</button>
-                        <div class="text-center">
-                            <a href="../" class="form-text small text-body-secondary">&larr; Back to verification portal</a>
-                        </div>
-                    </form>
-                </div>
+        <!-- Login panel -->
+        <div class="col-12 col-md-6 col-lg-5 col-xl-4 px-4 px-lg-5 my-5 align-self-center">
+          <div class="login-card mx-auto">
+
+            <div class="mb-5 text-center">
+              <a href="./">
+                <img src="./assets/img/logo-dark.svg" width="180" alt="Glajoe Services">
+              </a>
             </div>
-            <div class="col-12 col-md-7 col-lg-6 d-none d-lg-block">
-                <div class="bg-cover h-100 min-vh-100 mt-n1 me-n3" style="background-image:url(assets/img/banner-bg.jpeg);background-position:center;"></div>
-            </div>
+
+            <h1 class="display-4 text-center mb-2">Welcome Back</h1>
+            <p class="text-body-secondary text-center mb-4">Sign in to continue to your account.</p>
+
+            <div id="loginAlert" class="alert d-none mb-3" role="alert"></div>
+
+            <form id="loginForm" novalidate>
+              <?php echo csrf_field(); ?>
+
+              <div class="form-floating">
+                <input type="email" name="email" class="form-control" id="floatingEmail"
+                       placeholder="name@example.com" autocomplete="email" required>
+                <label for="floatingEmail">Email address</label>
+              </div>
+
+              <div class="form-floating position-relative">
+                <input type="password" name="password" class="form-control pe-5"
+                       id="floatingPassword" placeholder="Password"
+                       autocomplete="current-password" required>
+                <label for="floatingPassword">Password</label>
+                <span class="toggle-pw" onclick="togglePassword()" title="Show/hide password">
+                  <i id="toggleIcon" class="fe fe-eye"></i>
+                </span>
+              </div>
+
+              <div class="text-end mb-4">
+                <a href="forgot-password" class="forgot-link text-body-secondary">Forgot password?</a>
+              </div>
+
+              <button class="btn btn-lg w-100 btn-primary" id="loginSubmit" type="submit">
+                Sign in
+              </button>
+            </form>
+
+          </div>
         </div>
+
+        <!-- Cover image -->
+        <div class="col-12 col-md-6 col-lg-7 col-xl-8 d-none d-md-block">
+          <div class="bg-cover h-100 min-vh-100 mt-n1 me-n3"
+               style="background-image: url(assets/img/bg.jpg);"></div>
+        </div>
+
+      </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script src="assets/js/vendor.bundle.js"></script>
     <script src="assets/js/theme.bundle.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <script>
-        const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
+      function togglePassword() {
+        const pw   = document.getElementById("floatingPassword");
+        const icon = document.getElementById("toggleIcon");
+        const show = pw.type === "password";
+        pw.type        = show ? "text" : "password";
+        icon.className = show ? "fe fe-eye-off" : "fe fe-eye";
+      }
 
-        function togglePassword() {
-            const input = document.getElementById('floatingPassword');
-            const icon = document.getElementById('toggleIcon');
-            const show = input.type === 'password';
-            input.type = show ? 'text' : 'password';
-            icon.classList.toggle('fe-eye', !show);
-            icon.classList.toggle('fe-eye-off', show);
+      document.getElementById("loginForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const btn   = document.getElementById("loginSubmit");
+        const alert = document.getElementById("loginAlert");
+        const csrf  = document.querySelector('meta[name="csrf-token"]').content;
+
+        btn.disabled    = true;
+        btn.textContent = "Signing in…";
+        alert.className = "alert d-none";
+
+        try {
+          const res  = await fetch("auth/login_auth.php", {
+            method:  "POST",
+            headers: { "X-CSRF-Token": csrf },
+            body:    new FormData(this),
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            btn.textContent = "Redirecting…";
+            window.location.href = data.redirect;
+          } else {
+            alert.className   = "alert alert-danger";
+            alert.textContent = data.message;
+            btn.disabled      = false;
+            btn.textContent   = "Sign in";
+          }
+        } catch {
+          alert.className   = "alert alert-danger";
+          alert.textContent = "Network error. Please try again.";
+          btn.disabled      = false;
+          btn.textContent   = "Sign in";
         }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.querySelector('#loginForm');
-            const submitButton = document.querySelector('#loginSubmit');
-            const notyf = new Notyf({ duration: 3000, position: { x: 'right', y: 'top' } });
-
-            form.addEventListener('submit', async function (e) {
-                e.preventDefault();
-                submitButton.disabled = true;
-                submitButton.textContent = 'Signing in...';
-
-                const formData = new FormData(form);
-                formData.append('csrf', CSRF_TOKEN);
-
-                try {
-                    const res = await fetch('auth/login_auth.php', { method: 'POST', body: formData });
-                    const data = await res.json();
-                    if (data.success) {
-                        notyf.success(data.message);
-                        setTimeout(() => window.location.href = data.redirect, 1200);
-                    } else {
-                        notyf.error(data.message);
-                    }
-                } catch (err) {
-                    notyf.error('Network or server error. Please try again.');
-                } finally {
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Sign in';
-                }
-            });
-        });
+      });
     </script>
-</body>
+  </body>
 </html>

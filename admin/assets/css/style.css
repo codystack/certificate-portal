@@ -35,7 +35,7 @@
     --bs-success-rgb: 0,217,126;
     --bs-info-rgb: 57,175,209;
     --bs-warning-rgb: 246,195,67;
-    --bs-danger-rgb: 237,28,36;
+    --bs-danger-rgb: 230,55,87;
     --bs-light-rgb: 237,242,249;
     --bs-dark-rgb: 18,38,63;
     --bs-primary-text-emphasis: #12315c;
@@ -200,18 +200,7 @@ hr {
     opacity: 1
 }
 
-.h1,.h2,.h3,h1,h2,h3 {
-    color: var(--bs-heading-color);
-    font-weight: 500;
-    /* font-family: PowerGrotesk; */
-    /* font-family: Recoleta; */
-    /* font-family: Butler; */
-    line-height: 1.1;
-    margin-bottom: 1.125rem;
-    margin-top: 0
-}
-
-.h4,.h5,.h6,h4,h5,h6 {
+.h1,.h2,.h3,.h4,.h5,.h6,h1,h2,h3,h4,h5,h6 {
     color: var(--bs-heading-color);
     font-weight: 500;
     line-height: 1.1;
@@ -562,21 +551,9 @@ progress {
 }
 
 .display-4 {
-    font-size: 1.25rem
-}
-
-.display-5 {
-    font-size: 0.625rem
-}
-
-.display-3,.display-4 {
-    font-weight: 600;
-    line-height: 1.1
-}
-
-.display-6 {
     font-size: 2rem
 }
+
 .list-inline,.list-unstyled {
     list-style: none;
     padding-left: 0
@@ -4204,7 +4181,7 @@ textarea.form-control-lg {
     --bs-navbar-color: var(--bs-gray-700);
     --bs-navbar-hover-color: var(--bs-black);
     --bs-navbar-disabled-color: rgba(var(--bs-emphasis-color-rgb),0.3);
-    --bs-navbar-active-color: var(--bs-primary);
+    --bs-navbar-active-color: var(--bs-black);
     --bs-navbar-brand-padding-y: 0;
     --bs-navbar-brand-margin-end: 1rem;
     --bs-navbar-brand-font-size: 1.0625rem;
@@ -8161,7 +8138,7 @@ textarea.form-control-lg {
 
 .border-primary {
     --bs-border-opacity: 1;
-    border-color: rgba(var(--bs-danger-rgb),var(--bs-border-opacity))!important
+    border-color: rgba(var(--bs-primary-rgb),var(--bs-border-opacity))!important
 }
 
 .border-secondary {
@@ -16493,7 +16470,7 @@ ol,ul {
 }
 
 .display-1,.display-2,.display-3,.display-4,.h1,.h2,.h3,.h4,.h5,.h6,h1,h2,h3,h4,h5,h6 {
-    /* letter-spacing: -.02em */
+    letter-spacing: -.02em
 }
 
 .text-uppercase.h6,h6.text-uppercase {
@@ -16513,7 +16490,7 @@ a:focus,button:focus {
     font-style: normal;
     font-weight: 400;
     src: url(../fonts/cerebrisans/cerebrisans-regular.eot);
-    src: url(../fonts/cerebrisans/cerebrisans-regular.eot?#iefix) format("embedded-opentype"),url(../fonts/cerebrisans/cerebrisans-regular.woff) format("woff"),url(../fonts/cerebrisans/cerebrisans-regular.ttf) format("truetype")
+    src: url(../fonts/cerebrisans/cerebrisans-regular_.eot#iefix) format("embedded-opentype"),url(../fonts/cerebrisans/cerebrisans-regular.woff) format("woff"),url(../fonts/cerebrisans/cerebrisans-regular.ttf) format("truetype")
 }
 
 @font-face {
@@ -16521,7 +16498,7 @@ a:focus,button:focus {
     font-style: normal;
     font-weight: 500;
     src: url(../fonts/cerebrisans/cerebrisans-medium.eot);
-    src: url(../fonts/cerebrisans/cerebrisans-medium.eot?#iefix) format("embedded-opentype"),url(../fonts/cerebrisans/cerebrisans-medium.woff) format("woff"),url(../fonts/cerebrisans/cerebrisans-medium.ttf) format("truetype")
+    src: url(../fonts/cerebrisans/cerebrisans-medium_.eot#iefix) format("embedded-opentype"),url(../fonts/cerebrisans/cerebrisans-medium.woff) format("woff"),url(../fonts/cerebrisans/cerebrisans-medium.ttf) format("truetype")
 }
 
 @font-face {
@@ -16529,7 +16506,7 @@ a:focus,button:focus {
     font-style: normal;
     font-weight: 600;
     src: url(../fonts/cerebrisans/cerebrisans-semibold.eot);
-    src: url(../fonts/cerebrisans/cerebrisans-semibold.eot?#iefix) format("embedded-opentype"),url(../fonts/cerebrisans/cerebrisans-semibold.woff) format("woff"),url(../fonts/cerebrisans/cerebrisans-semibold.ttf) format("truetype")
+    src: url(../fonts/cerebrisans/cerebrisans-semibold_.eot#iefix) format("embedded-opentype"),url(../fonts/cerebrisans/cerebrisans-semibold.woff) format("woff"),url(../fonts/cerebrisans/cerebrisans-semibold.ttf) format("truetype")
 }
 
 @font-face {
@@ -21640,11 +21617,11 @@ a:focus,button:focus {
     --bs-btn-bg: #ed1c24;
     --bs-btn-border-color: #ed1c24;
     --bs-btn-hover-color: #fff;
-    --bs-btn-hover-bg: #2569c3;
-    --bs-btn-hover-border-color: #2362b7;
+    --bs-btn-hover-bg: #d90f16;
+    --bs-btn-hover-border-color: #d90f16;
     --bs-btn-focus-shadow-rgb: 76,143,233;
     --bs-btn-active-color: #fff;
-    --bs-btn-active-bg: #2362b7;
+    --bs-btn-active-bg: #d90f16;
     --bs-btn-active-border-color: #215cac;
     --bs-btn-active-shadow: inset 0 3px 5px rgba(18,38,63,.125);
     --bs-btn-disabled-color: #fff;
