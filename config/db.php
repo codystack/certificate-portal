@@ -14,10 +14,16 @@ if (is_readable($envFile)) {
 $appEnv = getenv('APP_ENV') ?: 'production';
 $suffix  = ($appEnv === 'development') ? '_DEV' : '_PROD';
 
-$host     = getenv('DB_HOST')           ?: 'localhost';
-$user     = getenv('DB_USER' . $suffix) ?: '';
-$password = getenv('DB_PASS' . $suffix) ?: '';
-$database = getenv('DB_NAME' . $suffix) ?: '';
+$host     = getenv('DB_HOST')             ?: 'localhost';
+$user     = getenv('DB_USER' . $suffix);
+$password = getenv('DB_PASS' . $suffix);
+$database = getenv('DB_NAME' . $suffix);
+
+if ($user === false || $database === false) {
+    error_log("Missing DB_USER{$suffix}/DB_NAME{$suffix} in environment; check that .env exists and is readable at " . __DIR__ . '/../.env');
+    die("Server configuration error: database credentials not set for APP_ENV={$appEnv}");
+}
+$password = $password === false ? '' : $password;
 
 $appUrl = getenv('APP_URL' . $suffix);
 if ($appUrl) {
