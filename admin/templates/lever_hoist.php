@@ -1,10 +1,11 @@
 <?php
 /**
- * Turnbuckle "Certificate of Thorough Examination" → HTML for Dompdf.
- * Single page: identity grid, repeatable item table, specification block,
- * declaration. $c['details'] = ['items' => [...rows], 'spec' => [...]].
+ * Visual/NDT Item "Certificate of Thorough Examination" → HTML for Dompdf.
+ * Single page: identity grid, repeatable item table (columns driven by
+ * $def['item_columns']), specification block, declaration.
+ * $c['details'] = ['items' => [...rows], 'spec' => [...]].
  */
-function render_turnbuckle_template(array $c, array $def, string $qr): string
+function render_lever_hoist_template(array $c, array $def, string $qr): string
 {
     $h = fn($v) => htmlspecialchars((string) ($v ?? ""), ENT_QUOTES, "UTF-8");
     $d = $c["details"] ?? [];
@@ -39,27 +40,23 @@ function render_turnbuckle_template(array $c, array $def, string $qr): string
         . $kv("Next Inspection Date", $fmt($c["next_inspection_date"] ?? null))
         . '</table>';
 
-    // Item table
+    // Item table (columns driven entirely by $def['item_columns'])
+    $cols = $def["item_columns"];
     $rows = "";
     $sn = 1;
     foreach ($items as $it) {
-        $rows .= '<tr>'
-            . '<td class="c">' . $sn++ . '</td>'
-            . '<td>' . $h($it["id_no"] ?? "") . '</td>'
-            . '<td class="c">' . $h($it["qty"] ?? "") . '</td>'
-            . '<td>' . $h($it["description"] ?? "") . '</td>'
-            . '<td>' . $h($it["swl"] ?? "") . '</td>'
-            . '<td>' . $h($it["size"] ?? "") . '</td>'
-            . '<td>' . $h($it["make"] ?? "") . '</td>'
-            . '<td>' . $h($it["remarks"] ?? "") . '</td>'
-            . '</tr>';
+        $rows .= '<tr><td class="c">' . $sn++ . '</td>';
+        foreach (array_keys($cols) as $ck) {
+            $rows .= '<td' . ($ck === "qty" ? ' class="c"' : '') . '>' . $h($it[$ck] ?? "") . '</td>';
+        }
+        $rows .= '</tr>';
     }
     if ($rows === "") {
-        $rows = '<tr><td colspan="8" class="c">—</td></tr>';
+        $rows = '<tr><td colspan="' . (count($cols) + 1) . '" class="c">—</td></tr>';
     }
-    $itemTable = '<table class="items"><thead><tr>'
-        . '<th>S/N</th><th>ID No.</th><th>QTY</th><th>Items Description</th><th>SWL</th><th>Size</th><th>Make</th><th>Remarks</th>'
-        . '</tr></thead><tbody>' . $rows . '</tbody></table>';
+    $headCells = '<th>S/N</th>';
+    foreach ($cols as $label) { $headCells .= '<th>' . $h($label) . '</th>'; }
+    $itemTable = '<table class="items"><thead><tr>' . $headCells . '</tr></thead><tbody>' . $rows . '</tbody></table>';
 
     $sigCell = !empty($c["signature_img"])
         ? '<img src="' . $c["signature_img"] . '" class="sigimg"><div class="sigline">Signature of Inspector</div>'
@@ -70,7 +67,6 @@ function render_turnbuckle_template(array $c, array $def, string $qr): string
         <td>Name of Inspector: <b>' . $h($c["inspector_name"]) . '</b></td>
         <td class="stampcell">' . $stampCell . '</td></tr></table>';
 
-    // Specification block (two columns of key/value)
     $specRows = "";
     foreach ($def["spec_fields"] as $k => $meta) {
         $specRows .= $kv($meta["label"], $spec[$k] ?? "");

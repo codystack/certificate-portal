@@ -1,13 +1,14 @@
 <?php
 /**
- * Beam Trolley LOLER "Certificate of Thorough Examination" → HTML for Dompdf.
- * $c['details'] = ['equipment' => [...], 'questions' => [key=>YES|NO], 'results' => [...]].
+ * Shackle LOLER "Certificate of Thorough Examination" → HTML for Dompdf.
+ * $c['details'] = ['items' => [[id_no,description,swl,location,manufacturer], ...],
+ *                  'questions' => [key=>YES|NO], 'results' => [...]].
  */
-function render_beam_trolley_template(array $c, array $def, string $qr): string
+function render_shackle_template(array $c, array $def, string $qr): string
 {
     $h = fn($v) => htmlspecialchars((string) ($v ?? ""), ENT_QUOTES, "UTF-8");
     $d = $c["details"] ?? [];
-    $eq = $d["equipment"] ?? [];
+    $items = $d["items"] ?? [];
     $q  = $d["questions"] ?? [];
     $res = $d["results"] ?? [];
 
@@ -42,11 +43,17 @@ function render_beam_trolley_template(array $c, array $def, string $qr): string
         . $kv($def["owner_label"], $c["equipment_owner"])
         . '</table>';
 
-    $eqRows = "";
-    foreach ($def["equipment_fields"] as $k => $label) {
-        $eqRows .= $kv($label, $eq[$k] ?? "");
+    // Repeating equipment items (multiple shackles per certificate)
+    $itemRows = "";
+    foreach ($items as $it) {
+        $itemRows .= '<tr>'
+            . '<td class="k">Description and identification of the equipment:<br><b>ID NO: ' . $h($it["id_no"] ?? "") . '</b><br>DESCRIPTION: ' . $h($it["description"] ?? "") . '</td>'
+            . '<td class="k">Safe Working Load(s):<br><b>' . $h($it["swl"] ?? "") . '</b></td>'
+            . '<td class="k">Location on Board:<br><b>' . $h($it["location"] ?? "") . '</b></td>'
+            . '<td class="k">Details of Manufacturer:<br><b>' . $h($it["manufacturer"] ?? "") . '</b></td>'
+            . '</tr>';
     }
-    $equipment = '<div class="sec">Description and identification of the equipment</div><table class="grid">' . $eqRows . '</table>';
+    $equipment = '<table class="grid itbl">' . $itemRows . '</table>';
 
     // Questions
     $qRows = "";
@@ -72,7 +79,7 @@ function render_beam_trolley_template(array $c, array $def, string $qr): string
         . '<tr><td class="k">Name &amp; Qualifications of Inspector</td><td class="v">' . $h(trim(($c["inspector_name"] ?? "") . ($c["qualification"] ? " — " . $c["qualification"] : ""))) . '</td></tr>'
         . '<tr><td class="k">Signature</td><td class="v">' . $sigValue . '</td></tr>'
         . $kv($def["next_date_label"], $fmt($c["next_inspection_date"] ?? null))
-        . $kv("Name &amp; Position authenticating this report", $res["authenticator"] ?? "")
+        . $kv("Name & Position authenticating this report", $res["authenticator"] ?? "")
         . (!empty($c["stamp_img"]) ? '<tr><td class="k">Company Stamp</td><td class="v"><img src="' . $c["stamp_img"] . '" class="stampimg"></td></tr>' : '')
         . '</table>';
 
@@ -93,6 +100,8 @@ function render_beam_trolley_template(array $c, array $def, string $qr): string
     .grid { width:100%; border-collapse:collapse; margin-top:6px; }
     .grid .k { background:#f3f5f8; font-weight:bold; border:0.5px solid #ccc; padding:3px 5px; }
     .grid .v { border:0.5px solid #ccc; padding:3px 5px; }
+    .itbl .k { width:25%; font-weight:normal; }
+    .itbl .k b { font-weight:bold; }
     .sec { font-weight:bold; font-size:10px; margin:9px 0 0; color:#1a3c6e; }
     .qtbl .q { border:0.5px solid #ccc; padding:3px 5px; width:70%; }
     .qtbl .a { border:0.5px solid #ccc; padding:3px 5px; white-space:nowrap; }
@@ -106,7 +115,8 @@ function render_beam_trolley_template(array $c, array $def, string $qr): string
     $body = $header
         . '<div class="rtitle">' . $h($def["report_title"]) . '</div>'
         . '<div class="rcomp">' . $h($def["compliance"]) . '</div>'
-        . $top . $idblock . $equipment
+        . $top . $idblock
+        . '<div class="sec">Description and Identification of the Equipment</div>' . $equipment
         . '<div class="sec">Examination</div>' . $questions
         . $results . $declaration . $footerBlock;
 

@@ -1,12 +1,11 @@
 <?php
 /**
- * Winch inspection report → HTML for Dompdf.
- * $c   = certificate row (+ decoded `details` array)
- * $def = inspection type definition (inspection_types()['winch'])
- * $qr  = QR code as a data: URI (PNG)
- * Returns a full HTML document string.
+ * Winch Non-Conformance Report → HTML for Dompdf.
+ * Same equipment/checklist shape as the Winch inspection report, but the
+ * result (REMARK / intro line) is driven by $c['status'] (Active=Fit,
+ * Expired=Unfit) since this report exists specifically to file a defect.
  */
-function render_winch_template(array $c, array $def, string $qr): string
+function render_winch_defect_template(array $c, array $def, string $qr): string
 {
     $h = fn($v) => htmlspecialchars((string) ($v ?? ""), ENT_QUOTES, "UTF-8");
     $d = $c["details"] ?? [];
@@ -20,7 +19,8 @@ function render_winch_template(array $c, array $def, string $qr): string
         return $t ? date("d/m/Y", $t) : (string) $date;
     };
 
-    // Header reused on both pages (QR sits in the right cell of page 1).
+    $fit = ($c["status"] ?? "Active") !== "Expired";
+
     $headerHtml = function (bool $withQr) use ($h, $def, $qr) {
         $qrCell = $withQr
             ? '<td class="qr"><img src="' . $qr . '" width="84" height="84"><div class="qrcap">Scan to verify</div></td>'
@@ -31,7 +31,7 @@ function render_winch_template(array $c, array $def, string $qr): string
                 <div class="co">GLAJOE MULTI SERVICES LTD. <span class="rc">RC 1186853</span></div>
                 <div class="addr">#3 Doxa Road, Off Peter Odili, Trans-Amadi, Port Harcourt, Rivers State.</div>
                 <div class="comp">' . $h($def["compliance"]) . '</div>
-                <div class="contact">www.glajoeservices.com.ng &nbsp;|&nbsp; glajoeservices@gmail.com &nbsp;|&nbsp; 08130776837, 08121182863</div>
+                <div class="contact">www.glajoeservices.com.ng &nbsp;|&nbsp; glajoeservices@gmail.com &nbsp;|&nbsp; ' . $h($def["tel"]) . '</div>
             </td>' . $qrCell . '</tr></table>';
     };
 
@@ -58,7 +58,9 @@ function render_winch_template(array $c, array $def, string $qr): string
         $wrRows .= $kv($label, $wr[$k] ?? "");
     }
 
-    $defects = '<div class="defects"><div class="defq">Identification of any part found to have a defect which could become a danger to a person, and a description of the defect (if none, state NONE):</div>'
+    $remark = '<div class="remark">REMARK: <span class="' . ($fit ? "fit" : "unfit") . '">' . ($fit ? "FIT FOR USE" : "UNFIT FOR USE") . '</span></div>';
+
+    $defects = '<div class="defects"><div class="defq">' . $h($def["defects_prompt"]) . '</div>'
         . '<div class="defv">' . ($h($c["defects"]) ?: "NONE") . '</div></div>';
 
     $sigCell = !empty($c["signature_img"])
@@ -75,7 +77,7 @@ function render_winch_template(array $c, array $def, string $qr): string
         . $identity
         . '<div class="sec">EQUIPMENT DESCRIPTION</div><table class="grid">' . $eqRows . '</table>'
         . '<div class="sec">' . $h($def["subblock_label"]) . '</div><table class="grid">' . $wrRows . '</table>'
-        . $defects . $signoff;
+        . $remark . $defects . $signoff;
 
     // ---- Page 2: checklist ----
     $rows = "";
@@ -95,7 +97,7 @@ function render_winch_template(array $c, array $def, string $qr): string
     }
 
     $page2 = '<div class="pagebreak"></div>' . $headerHtml(false)
-        . '<div class="intro">Visual and functional tests were carried out on the equipment identified above as per requirements, and it was found <b>fit for use</b>.</div>'
+        . '<div class="intro">Visual and functional test were carried out on the equipment identified above as per requirements. And was found <b>' . ($fit ? "Fit for use" : "Unfit for use") . '</b>.</div>'
         . '<table class="chk"><thead><tr>'
         . '<th class="hl">INSPECTION COMPONENT</th><th>SAT.</th><th>UNSAT.</th><th>N/A</th><th>COMMENT</th>'
         . '</tr></thead><tbody>' . $rows . '</tbody></table>';
@@ -113,11 +115,14 @@ function render_winch_template(array $c, array $def, string $qr): string
     .contact { font-size:7.5px; color:#666; }
     .qr { width:96px; text-align:center; vertical-align:top; }
     .qrcap { font-size:6.5px; color:#555; }
-    .rtitle { text-align:center; font-weight:bold; font-size:12px; letter-spacing:1px; margin:8px 0 4px; }
+    .rtitle { text-align:center; font-weight:bold; font-size:12px; letter-spacing:1px; margin:8px 0 4px; color:#c0392b; }
     .grid { width:100%; border-collapse:collapse; }
     .grid .k { width:33%; background:#f3f5f8; font-weight:bold; border:0.5px solid #ccc; padding:3px 5px; }
     .grid .v { border:0.5px solid #ccc; padding:3px 5px; }
     .sec { font-weight:bold; font-size:10px; margin:9px 0 2px; color:#1a3c6e; }
+    .remark { margin-top:9px; font-size:10px; font-weight:bold; }
+    .fit { color:#1a7f37; }
+    .unfit { color:#c0392b; }
     .defects { margin-top:9px; }
     .defq { font-style:italic; font-size:8.5px; }
     .defv { font-weight:bold; margin-top:2px; }

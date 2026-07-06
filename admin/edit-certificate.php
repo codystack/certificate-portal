@@ -1,7 +1,6 @@
 <?php
 $page = "Certificates";
 include __DIR__ . "/components/head.php";
-include __DIR__ . "/components/sidebar.php";
 
 $id = (int) ($_GET["id"] ?? 0);
 $stmt = mysqli_prepare($conn, "SELECT id, title, client, certNum, image, status FROM certificate WHERE id = ?");
@@ -12,6 +11,8 @@ if (!$cert) {
     flash("Certificate not found.", "error");
     redirect("certificates.php");
 }
+
+include __DIR__ . "/components/sidebar.php";
 ?>
 <div class="main-content">
     <?php include __DIR__ . "/components/topbar.php"; ?>

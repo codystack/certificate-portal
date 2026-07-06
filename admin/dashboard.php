@@ -16,10 +16,10 @@ $stats["admins"] = (int) (mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*
 $recent = mysqli_query($conn, "SELECT title, client, certNum, status, dateCreated FROM certificate ORDER BY dateCreated DESC LIMIT 8");
 
 $cards = [
-    ["Total Certificates", $stats["total"],   "fe-award",       "primary"],
-    ["Active",             $stats["active"],  "fe-check-circle","success"],
-    ["Expired",            $stats["expired"], "fe-x-circle",    "danger"],
-    ["Administrators",     $stats["admins"],  "fe-users",       "info"],
+    ["Total Certificates", $stats["total"],   "fe-award",        "primary", "All time"],
+    ["Active",             $stats["active"],  "fe-check-circle", "success", "Currently valid"],
+    ["Expired",            $stats["expired"], "fe-x-circle",     "danger",  "Needs renewal"],
+    ["Administrators",     $stats["admins"],  "fe-users",        "info",    "System users"],
 ];
 ?>
 <div class="main-content">
@@ -40,8 +40,8 @@ $cards = [
 
     <div class="container-fluid">
         <div class="row">
-            <?php foreach ($cards as [$label, $value, $icon, $color]): ?>
-            <div class="col-12 col-sm-6 col-xl-3">
+            <?php foreach ($cards as [$label, $value, $icon, $color, $caption]): ?>
+            <div class="col-6 col-md-3">
                 <div class="card">
                     <div class="card-body">
                         <div class="row align-items-center gx-0">
@@ -50,9 +50,14 @@ $cards = [
                                 <span class="h2 mb-0"><?php echo (int) $value; ?></span>
                             </div>
                             <div class="col-auto">
-                                <span class="h2 fe <?php echo $icon; ?> text-<?php echo $color; ?> mb-0"></span>
+                                <div class="avatar avatar-sm">
+                                    <div class="avatar-title fs-lg bg-<?php echo $color; ?>-subtle rounded-circle text-<?php echo $color; ?>">
+                                        <i class="fe <?php echo $icon; ?>"></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        <p class="mb-0 mt-2"><small class="text-body-secondary"><?php echo e($caption); ?></small></p>
                     </div>
                 </div>
             </div>

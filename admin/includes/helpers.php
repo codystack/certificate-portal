@@ -176,3 +176,43 @@ function delete_upload(?string $relPath): void
         @unlink($full);
     }
 }
+
+/* ------------------------------------------------------------- Activity log */
+
+/** Best-effort client IP, skipping private/reserved ranges from proxy headers. */
+function client_ip(): string
+{
+    foreach (["HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR", "REMOTE_ADDR"] as $key) {
+        $val = $_SERVER[$key] ?? "";
+        $ip = trim(explode(",", $val)[0]);
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return $ip;
+        }
+    }
+    return $_SERVER["REMOTE_ADDR"] ?? "Unknown";
+}
+
+/**
+ * Record an admin action in activity_logs. Never throws — a failed log
+ * write must not break the action it's describing.
+ */
+function log_activity(
+    mysqli $conn,
+    int $adminId,
+    string $action,
+    string $module,
+    ?int $targetId = null,
+    ?string $description = null
+): void {
+    $ip = client_ip();
+    $device = substr($_SERVER["HTTP_USER_AGENT"] ?? "Unknown device", 0, 255);
+    $stmt = mysqli_prepare(
+        $conn,
+        "INSERT INTO activity_logs (admin_id, action, module, target_id, description, ip_address, device_info) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    );
+    if (!$stmt) {
+        return;
+    }
+    mysqli_stmt_bind_param($stmt, "ississs", $adminId, $action, $module, $targetId, $description, $ip, $device);
+    mysqli_stmt_execute($stmt);
+}

@@ -11,6 +11,9 @@
                     <span class="dropdown-item-text"><strong><?php echo $fullName; ?></strong></span>
                     <span class="dropdown-item-text small text-muted"><?php echo $userEmail; ?></span>
                     <hr class="dropdown-divider">
+                    <a href="profile.php" class="dropdown-item">Profile</a>
+                    <a href="security.php" class="dropdown-item">Security</a>
+                    <hr class="dropdown-divider">
                     <a href="logout.php" class="dropdown-item">Logout</a>
                 </div>
             </div>

@@ -26,6 +26,8 @@ $stmt = mysqli_prepare(
 mysqli_stmt_bind_param($stmt, "sssss", $title, $client, $certNum, $imagePath, $status);
 
 if (mysqli_stmt_execute($stmt)) {
+    $newId = mysqli_insert_id($conn);
+    log_activity($conn, (int) $_SESSION["admin_id"], "created", "certificate", $newId, "Created certificate {$certNum}");
     json_response(["success" => true, "message" => "Certificate added successfully.", "redirect" => "certificates.php"]);
 }
 delete_upload($imagePath);

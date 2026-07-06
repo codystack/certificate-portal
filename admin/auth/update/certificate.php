@@ -45,6 +45,7 @@ if (mysqli_stmt_execute($stmt)) {
     if ($replaced && $current["image"]) {
         delete_upload($current["image"]);
     }
+    log_activity($conn, (int) $_SESSION["admin_id"], "updated", "certificate", $id, "Updated certificate {$certNum}");
     json_response(["success" => true, "message" => "Certificate updated.", "redirect" => "certificates.php"]);
 }
 if ($replaced) {

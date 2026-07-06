@@ -1,13 +1,14 @@
 <?php
 /**
- * Beam Trolley LOLER "Certificate of Thorough Examination" → HTML for Dompdf.
- * $c['details'] = ['equipment' => [...], 'questions' => [key=>YES|NO], 'results' => [...]].
+ * Wire Rope Sling LOLER "Certificate of Thorough Examination" → HTML for Dompdf.
+ * $c['details'] = ['items' => [[id_no,qty,description,swl,date_of_manufacture,manufacturer], ...],
+ *                  'questions' => [key=>YES|NO], 'results' => [...]].
  */
-function render_beam_trolley_template(array $c, array $def, string $qr): string
+function render_wire_rope_sling_template(array $c, array $def, string $qr): string
 {
     $h = fn($v) => htmlspecialchars((string) ($v ?? ""), ENT_QUOTES, "UTF-8");
     $d = $c["details"] ?? [];
-    $eq = $d["equipment"] ?? [];
+    $items = $d["items"] ?? [];
     $q  = $d["questions"] ?? [];
     $res = $d["results"] ?? [];
 
@@ -31,7 +32,6 @@ function render_beam_trolley_template(array $c, array $def, string $qr): string
 
     $kv = fn($label, $value) => '<tr><td class="k">' . $h($label) . '</td><td class="v">' . $h($value) . '</td></tr>';
 
-    // Top dates + report number
     $top = '<table class="grid">'
         . '<tr><td class="k">' . $h($def["date_label"]) . '</td><td class="v">' . $h($fmt($c["inspection_date"] ?? null))
         . '</td><td class="k">Date of Report</td><td class="v">' . $h($fmt($res["date_of_report"] ?? null))
@@ -42,11 +42,31 @@ function render_beam_trolley_template(array $c, array $def, string $qr): string
         . $kv($def["owner_label"], $c["equipment_owner"])
         . '</table>';
 
-    $eqRows = "";
-    foreach ($def["equipment_fields"] as $k => $label) {
-        $eqRows .= $kv($label, $eq[$k] ?? "");
+    // Item table (horizontal, unlike the stacked-block shackle layout)
+    $cols = $def["item_columns"];
+    $rows = "";
+    $sn = 1;
+    foreach ($items as $it) {
+        $rows .= '<tr><td class="c">' . $sn++ . '</td>';
+        foreach (array_keys($cols) as $ck) {
+            $rows .= '<td' . ($ck === "qty" ? ' class="c"' : '') . '>' . $h($it[$ck] ?? "") . '</td>';
+        }
+        $rows .= '</tr>';
     }
-    $equipment = '<div class="sec">Description and identification of the equipment</div><table class="grid">' . $eqRows . '</table>';
+    if ($rows === "") {
+        $rows = '<tr><td colspan="' . (count($cols) + 1) . '" class="c">—</td></tr>';
+    }
+    $headCells = '<th>S/N</th>';
+    foreach ($cols as $label) { $headCells .= '<th>' . $h($label) . '</th>'; }
+    $itemTable = '<table class="items"><thead><tr>' . $headCells . '</tr></thead><tbody>' . $rows . '</tbody></table>';
+
+    // Test information (third-party sling test certificate)
+    $testInfo = '<table class="grid">'
+        . $kv("Test Item", $res["test_item"] ?? "")
+        . $kv("Test Manufacturer", $res["test_manufacturer"] ?? "")
+        . $kv("Test Certificate No", $res["test_cert_no"] ?? "")
+        . $kv("Test Date", $fmt($res["test_date"] ?? null))
+        . '</table>';
 
     // Questions
     $qRows = "";
@@ -72,7 +92,7 @@ function render_beam_trolley_template(array $c, array $def, string $qr): string
         . '<tr><td class="k">Name &amp; Qualifications of Inspector</td><td class="v">' . $h(trim(($c["inspector_name"] ?? "") . ($c["qualification"] ? " — " . $c["qualification"] : ""))) . '</td></tr>'
         . '<tr><td class="k">Signature</td><td class="v">' . $sigValue . '</td></tr>'
         . $kv($def["next_date_label"], $fmt($c["next_inspection_date"] ?? null))
-        . $kv("Name &amp; Position authenticating this report", $res["authenticator"] ?? "")
+        . $kv("Name & Position authenticating this report", $res["authenticator"] ?? "")
         . (!empty($c["stamp_img"]) ? '<tr><td class="k">Company Stamp</td><td class="v"><img src="' . $c["stamp_img"] . '" class="stampimg"></td></tr>' : '')
         . '</table>';
 
@@ -94,6 +114,10 @@ function render_beam_trolley_template(array $c, array $def, string $qr): string
     .grid .k { background:#f3f5f8; font-weight:bold; border:0.5px solid #ccc; padding:3px 5px; }
     .grid .v { border:0.5px solid #ccc; padding:3px 5px; }
     .sec { font-weight:bold; font-size:10px; margin:9px 0 0; color:#1a3c6e; }
+    .items { width:100%; border-collapse:collapse; margin-top:6px; }
+    .items th { border:0.5px solid #ccc; background:#1a3c6e; color:#fff; padding:3px 4px; font-size:8px; }
+    .items td { border:0.5px solid #ccc; padding:3px 5px; font-size:8.5px; }
+    .items td.c { text-align:center; }
     .qtbl .q { border:0.5px solid #ccc; padding:3px 5px; width:70%; }
     .qtbl .a { border:0.5px solid #ccc; padding:3px 5px; white-space:nowrap; }
     .yn { margin-right:10px; font-weight:bold; }
@@ -106,7 +130,9 @@ function render_beam_trolley_template(array $c, array $def, string $qr): string
     $body = $header
         . '<div class="rtitle">' . $h($def["report_title"]) . '</div>'
         . '<div class="rcomp">' . $h($def["compliance"]) . '</div>'
-        . $top . $idblock . $equipment
+        . $top . $idblock
+        . '<div class="sec">Item(s)</div>' . $itemTable
+        . '<div class="sec">Test Information</div>' . $testInfo
         . '<div class="sec">Examination</div>' . $questions
         . $results . $declaration . $footerBlock;
 

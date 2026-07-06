@@ -19,6 +19,7 @@ if (isset($_SESSION["admin_id"])) {
     <link rel="shortcut icon" href="../assets/images/glajoe-favicon.png" type="image/x-icon">
     <link rel="stylesheet" href="assets/css/libs.bundle.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <title>Sign In :: Glajoe Services&trade;</title>
     <style>
       .login-card { max-width: 440px; }
@@ -53,8 +54,6 @@ if (isset($_SESSION["admin_id"])) {
 
             <h1 class="display-4 text-center mb-2">Welcome Back</h1>
             <p class="text-body-secondary text-center mb-4">Sign in to continue to your account.</p>
-
-            <div id="loginAlert" class="alert d-none mb-3" role="alert"></div>
 
             <form id="loginForm" novalidate>
               <?php echo csrf_field(); ?>
@@ -97,8 +96,11 @@ if (isset($_SESSION["admin_id"])) {
     </div>
 
     <script src="assets/js/vendor.bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <script src="assets/js/theme.bundle.js"></script>
     <script>
+      const notyf = new Notyf({ duration: 3000, position: { x: 'right', y: 'top' } });
+
       function togglePassword() {
         const pw   = document.getElementById("floatingPassword");
         const icon = document.getElementById("toggleIcon");
@@ -110,13 +112,11 @@ if (isset($_SESSION["admin_id"])) {
       document.getElementById("loginForm").addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        const btn   = document.getElementById("loginSubmit");
-        const alert = document.getElementById("loginAlert");
-        const csrf  = document.querySelector('meta[name="csrf-token"]').content;
+        const btn  = document.getElementById("loginSubmit");
+        const csrf = document.querySelector('meta[name="csrf-token"]').content;
 
         btn.disabled    = true;
         btn.textContent = "Signing in…";
-        alert.className = "alert d-none";
 
         try {
           const res  = await fetch("auth/login_auth.php", {
@@ -127,19 +127,18 @@ if (isset($_SESSION["admin_id"])) {
           const data = await res.json();
 
           if (data.success) {
+            notyf.success(data.message);
             btn.textContent = "Redirecting…";
-            window.location.href = data.redirect;
+            setTimeout(() => { window.location.href = data.redirect; }, 900);
           } else {
-            alert.className   = "alert alert-danger";
-            alert.textContent = data.message;
-            btn.disabled      = false;
-            btn.textContent   = "Sign in";
+            notyf.error(data.message);
+            btn.disabled    = false;
+            btn.textContent = "Sign in";
           }
         } catch {
-          alert.className   = "alert alert-danger";
-          alert.textContent = "Network error. Please try again.";
-          btn.disabled      = false;
-          btn.textContent   = "Sign in";
+          notyf.error("Network error. Please try again.");
+          btn.disabled    = false;
+          btn.textContent = "Sign in";
         }
       });
     </script>

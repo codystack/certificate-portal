@@ -11,12 +11,13 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ─── Admin / Auth ─────────────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS admin (
-  id        int(11)      NOT NULL AUTO_INCREMENT,
-  email     varchar(150) NOT NULL,
+  id        int(10) unsigned NOT NULL AUTO_INCREMENT,
+  email     varchar(255) NOT NULL,
   password  varchar(255) NOT NULL,
   firstName varchar(100) NOT NULL,
   lastName  varchar(100) NOT NULL,
-  position  varchar(100) DEFAULT NULL,
+  picture   varchar(100) DEFAULT NULL,
+  position  enum('Admin','Super Admin') NOT NULL DEFAULT 'Admin',
   status    enum('Active','Inactive') NOT NULL DEFAULT 'Active',
   date      datetime     NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id),
@@ -33,6 +34,21 @@ CREATE TABLE IF NOT EXISTS password_resets (
   PRIMARY KEY (id),
   UNIQUE KEY token_hash (token_hash),
   KEY admin_id (admin_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id          int(11)      NOT NULL AUTO_INCREMENT,
+  admin_id    int(11)      NOT NULL,
+  action      varchar(50)  NOT NULL,
+  module      varchar(50)  NOT NULL,
+  target_id   int(11)      DEFAULT NULL,
+  description varchar(255) DEFAULT NULL,
+  ip_address  varchar(45)  DEFAULT NULL,
+  device_info varchar(255) DEFAULT NULL,
+  created_at  datetime     NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  KEY admin_id (admin_id),
+  KEY created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
@@ -55,11 +71,15 @@ CREATE TABLE IF NOT EXISTS certificate (
   inspection_date      date         DEFAULT NULL,
   next_inspection_date date         DEFAULT NULL,
   inspector_name       varchar(255) DEFAULT NULL,
+  inspector_signature  varchar(100) DEFAULT NULL,
+  company_stamp        varchar(100) DEFAULT NULL,
   defects              text         DEFAULT NULL,
   details              longtext     DEFAULT NULL,
   generated            tinyint(1)   NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
-  UNIQUE KEY certNum (certNum)
+  UNIQUE KEY certNum (certNum),
+  KEY status (status),
+  KEY dateCreated (dateCreated)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
@@ -80,9 +100,34 @@ ALTER TABLE certificate
   ADD COLUMN IF NOT EXISTS inspection_date      DATE NULL,
   ADD COLUMN IF NOT EXISTS next_inspection_date DATE NULL,
   ADD COLUMN IF NOT EXISTS inspector_name       VARCHAR(255) NULL,
+  ADD COLUMN IF NOT EXISTS inspector_signature  VARCHAR(100) NULL,
+  ADD COLUMN IF NOT EXISTS company_stamp        VARCHAR(100) NULL,
   ADD COLUMN IF NOT EXISTS defects              TEXT NULL,
   ADD COLUMN IF NOT EXISTS details              LONGTEXT NULL,
-  ADD COLUMN IF NOT EXISTS generated            TINYINT(1) NOT NULL DEFAULT 0;
+  ADD COLUMN IF NOT EXISTS generated            TINYINT(1) NOT NULL DEFAULT 0,
+  ADD INDEX IF NOT EXISTS status (status),
+  ADD INDEX IF NOT EXISTS dateCreated (dateCreated);
+
+-- certificate: some older installs created this table before it was switched
+-- to InnoDB/utf8mb4 (MyISAM has no transaction/crash safety, and latin1 will
+-- silently mangle any non-ASCII character typed into a free-text field such
+-- as client/examiner/inspector_name). Converting is a one-time table rebuild;
+-- safe to re-run (no-op once already InnoDB/utf8mb4).
+ALTER TABLE certificate ENGINE=InnoDB, CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- admin: avatar upload (picture) and the Admin/Super Admin role gate
+-- (position, checked by admin/auth/guard.php's require_role()) predate this
+-- schema file; add/repair them on installs that were created before either
+-- existed, and bring the table's encoding in line with the rest of the app.
+ALTER TABLE admin
+  ADD COLUMN IF NOT EXISTS picture VARCHAR(100) DEFAULT NULL AFTER lastName,
+  MODIFY COLUMN email VARCHAR(255) NOT NULL,
+  MODIFY COLUMN position ENUM('Admin','Super Admin') NOT NULL DEFAULT 'Admin',
+  ENGINE=InnoDB, CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- activity_logs: index for the "ORDER BY created_at DESC LIMIT 500" audit view.
+ALTER TABLE activity_logs
+  ADD INDEX IF NOT EXISTS created_at (created_at);
 
 
 SET FOREIGN_KEY_CHECKS = 1;
